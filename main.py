@@ -5,7 +5,8 @@
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.widget import Widget
-from vk_api import *
+
+from vkontakte.ios.vk_api import *
 
 __version__ = '1.0'
 

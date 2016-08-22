@@ -1,11 +1,11 @@
-from kivy.network.urlrequest import UrlRequest
-from pyobjus import autoclass, protocol, objc_str
-from pyobjus.protocols import protocols
-from pyobjus.dylib_manager import load_framework, INCLUDE
-
+# coding=utf-8
+import requests
 import sys
-import time
-import vk
+
+from pyobjus import autoclass
+from pyobjus.dylib_manager import load_framework
+
+from delegates import Delegate, UiDelegate
 
 path = ''
 for p in sys.path:
@@ -25,7 +25,7 @@ OurVK = autoclass('OurVk')
 VKUIDelegate = autoclass('VKUIDelegate')
 
 
-class VkIosApi(object):
+class VkApi(object):
     APP_ID = 5552065
 
     _ui_delegate = None
@@ -33,6 +33,8 @@ class VkIosApi(object):
     _user_id = None
     _auth_done = None
     instance = None
+    DELIMITER = '.'
+    URL = ''
 
     @property
     def auth_done(self):
@@ -104,42 +106,8 @@ class VkIosApi(object):
                 except BaseException as e:
                     print('zapros fail: {}'.format(str(e)))
 
-
-class Delegate(object):
-    @protocol('VKSdkDelegate')
-    def vkSdkAccessTokenUpdated_oldToken_(self, new_token, old_token):
-        vk_api = VkIosApi.get_instance()
-        old_token = old_token.UTF8String()
-
-        if old_token is not None:
-            new_token = new_token.UTF8String()
-
-            if vk_api.vk_token is None or old_token != new_token:
-                vk_api.vk_token = new_token
-
-                coroutine = vk_api.auth_done
-                coroutine.send(True)
-
-        # print('update token', new_token, old_token)
-
-    @protocol('VKSdkDelegate')
-    def vkSdkAuthorizationStateUpdatedWithResult_(self, token):
-        self.vk_api.vk_token = token.UTF8String()
-        print('update with result')
-
-    @protocol('VKSdkDelegate')
-    def vkSdkAccessAuthorizationFinishedWithResult_(self, token):
-        self.vk_api.vk_token = token.UTF8String()
-        print('finish with result')
-
-    @protocol('VKSdkDelegate')
-    def vkSdkTokenHasExpired_(self, *args):
-        print('expired')
+    def request(self, url, params):
+        response = requests.request('POST', url=url, params=params)
+        return response
 
 
-class UiDelegate(object):
-    @protocol('VKSdkUIDelegate')
-    def vkSdkShouldPresentViewController_(self, controller):
-        delegate = VkIosApi.ui_delegate
-
-        delegate.presentController_(controller, )
