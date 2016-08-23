@@ -1,4 +1,23 @@
 # coding=utf-8
+"""
+Module provided API for social networks vkontakte and facebook.
+
+How to use:
+    - Create instance:
+        social = SocialApi(social_net="facebook")
+    As argument use name of social network - "facebook" or "vkontakte"
+    - Use API:
+        example for vkontakte:
+            result = social.friends.get(user_id='"1", fields=['nickname'])
+        Return list of friends with nicknames for user "1".
+        "friends.get" - is vkontakte method. Use other methods like this. As arguments for
+        function use method arguments from vkontakte API.
+
+        exampla for facebook:
+            result = social.me()
+        Return information about current user.
+        "me" - is node from graph API facebook.
+"""
 import json
 
 from vkontakte import vk_api
@@ -14,10 +33,10 @@ class SocialApi:
         'facebook': {'obj': fb_api.FbApi, 'instance': None}
     }
 
-    def __init__(self, social_net):
+    def __init__(self, social_net, **kwargs):
         if self._social_net[social_net]['instance'] is None:
             Social = self._social_net[social_net]['obj']
-            self._social_net[social_net]['instance'] = Social()
+            self._social_net[social_net]['instance'] = Social(**kwargs)
 
         self.api = self._social_net[social_net]['instance']
 
@@ -43,12 +62,5 @@ class GenerateRequest:
     def __call__(self, **kwargs):
         return self._api_instance.request(self._method, **kwargs)
 
-
-a = SocialApi(social_net='vkontakte')
-res = a.users.get(user_ids='322883', fields=['sex', 'online'])
-print('result', res)
-# b = SocialApi(social_net='facebook')
-# res = b.me()
-# print('result', res)
 
 
