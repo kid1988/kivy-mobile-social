@@ -40,21 +40,27 @@ Builder.load_string(main_widget)
 class MainWidget(Widget):
     def __init__(self, *args, **kwargs):
         super(MainWidget, self).__init__(*args, **kwargs)
+        # a = SocialApi(social_net='vkontakte')
+        a = SocialApi(social_net='facebook')
+        a.me(callback=None)
+
+        # res = a.friends.get(user_id='322883', fields=['nickname'])
+        # print('result', res)
 
     def login(self):
         pass
 
 
 if __name__ == '__main__':
-    # class MainApp(App):
-    #     def on_pause(self):
-    #         return True
-    #
-    #     def build(self):
-    #         return MainWidget()
-    #
-    #
-    # MainApp().run()
+    class MainApp(App):
+        def on_pause(self):
+            return True
+
+        def build(self):
+            return MainWidget()
+
+
+    MainApp().run()
 
     # a = SocialApi(social_net='vkontakte')
     # res = a.users.get(user_ids='322883', fields=['sex', 'online'])

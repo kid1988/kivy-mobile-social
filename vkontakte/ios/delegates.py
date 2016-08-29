@@ -1,10 +1,11 @@
-from vkontakte.ios.vk_api import VkIosApi
+from .vk_api import *
+from pyobjus import protocol
 
 
 class Delegate(object):
     @protocol('VKSdkDelegate')
     def vkSdkAccessTokenUpdated_oldToken_(self, new_token, old_token):
-        vk_api = VkIosApi.get_instance()
+        vk_api = VkApi.get_instance()
         old_token = old_token.UTF8String()
 
         if old_token is not None:
@@ -36,6 +37,6 @@ class Delegate(object):
 class UiDelegate(object):
     @protocol('VKSdkUIDelegate')
     def vkSdkShouldPresentViewController_(self, controller):
-        delegate = VkIosApi.ui_delegate
+        delegate = VkApi.ui_delegate
 
-        delegate.presentController_(controller, )
+        delegate.presentController_(controller,)

@@ -1,10 +1,10 @@
 # coding=utf-8
-import requests
 import sys
 
 from pyobjus import autoclass
 from pyobjus.dylib_manager import load_framework
 
+from ..default import vk_api
 from delegates import Delegate, UiDelegate
 
 path = ''
@@ -25,16 +25,9 @@ OurVK = autoclass('OurVk')
 VKUIDelegate = autoclass('VKUIDelegate')
 
 
-class VkApi(object):
+class VkApi(vk_api.VkApi):
     APP_ID = 5552065
 
-    _ui_delegate = None
-    _vk_token = None
-    _user_id = None
-    _auth_done = None
-    instance = None
-    DELIMITER = '.'
-    URL = ''
 
     @property
     def auth_done(self):
@@ -69,7 +62,6 @@ class VkApi(object):
         self._ui_delegate = value
 
     def __init__(self):
-
         self.delegate = Delegate()
         self.ui_delegate = UiDelegate()
 
@@ -78,11 +70,11 @@ class VkApi(object):
         self.vk.setUiDelegate_(self.ui_delegate)
 
         self.auth()
-        VkIosApi.instance = self
+        VkApi.instance = self
 
     @staticmethod
     def get_instance():
-        return VkIosApi.instance
+        return VkApi.instance
 
     def auth(self):
         self.vk.vkSession_(self.APP_ID)
@@ -106,8 +98,5 @@ class VkApi(object):
                 except BaseException as e:
                     print('zapros fail: {}'.format(str(e)))
 
-    def request(self, url, params):
-        response = requests.request('POST', url=url, params=params)
-        return response
 
 

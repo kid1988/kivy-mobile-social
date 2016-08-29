@@ -1,5 +1,5 @@
 # coding=utf-8
-import requests
+from kivy.network.urlrequest import UrlRequest
 
 
 class VkApi(object):
@@ -13,8 +13,26 @@ class VkApi(object):
     DELIMITER = '.'
     URL = 'https://api.vk.com/method/'
 
-    def request(self, url, params):
-        url = self.URL + '.'.join(url)
-        print(url,params)
-        response = requests.request('POST', url=url, params=params)
-        return response
+    _token = None
+
+    @property
+    def token(self):
+        return self._token
+
+    def request(self, url, callback,  params):
+        print('request!!!')
+        self.callback = callback
+        params['access_token'] = self._token
+
+        url = self.URL + '/'.join(url)
+
+        UrlRequest(url=url, on_success=self.on_success, on_error=self.on_error,
+                   on_failure=self.on_error, req_body=params)
+
+    def on_success(self, req, resp):
+        print('response!', resp)
+        if self.callback is not None:
+            self.callback(resp)
+
+    def on_error(self, req, err):
+        print('response error!', type(err))

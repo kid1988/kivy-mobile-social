@@ -20,6 +20,7 @@ How to use:
 """
 import json
 
+from functools import partial
 from vkontakte import vk_api
 from facebook import fb_api
 
@@ -43,11 +44,13 @@ class SocialApi:
     def __getattr__(self, item):
         return GenerateRequest(self, [item])
 
-    def request(self, method, **kwargs):
-        # url = self.api.URL + method
-        response = self.api.request(method, kwargs)
-        print('method', method, kwargs)
-        return json.loads(response.text)
+    def request(self, method, callback, **kwargs):
+
+        if self.api.token is not None:
+            self.api.request(method, callback, kwargs)
+        else:
+            request = partial(self.api.request, method, callback, kwargs)
+            self.api.request_queue.append(request)
 
 
 class GenerateRequest:
@@ -59,8 +62,9 @@ class GenerateRequest:
         self._method.append(method_name)
         return GenerateRequest(self._api_instance, self._method)
 
-    def __call__(self, **kwargs):
-        return self._api_instance.request(self._method, **kwargs)
+    def __call__(self, callback, **kwargs):
+        return self._api_instance.request(self._method, callback, **kwargs)
+
 
 
 
