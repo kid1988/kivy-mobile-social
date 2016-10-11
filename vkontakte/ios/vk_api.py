@@ -2,23 +2,11 @@
 import sys
 
 from pyobjus import autoclass
-from pyobjus.dylib_manager import load_framework
+from pyobjus import protocol
 
 from ..default import vk_api
 from delegates import Delegate, UiDelegate
 
-path = ''
-for p in sys.path:
-    if p.endswith('vk-api.app'):
-        path = p
-        break
-
-load_framework(path + '/Frameworks/VKSdkFramework.framework')
-load_framework('/System/Library/Frameworks/UIKit.framework')
-
-NSString = autoclass('NSString')
-NSArray = autoclass("NSArray")
-NSObject = autoclass("NSObject")
 VKSdk = autoclass('VKSdk')
 
 OurVK = autoclass('OurVk')
@@ -28,40 +16,8 @@ VKUIDelegate = autoclass('VKUIDelegate')
 class VkApi(vk_api.VkApi):
     APP_ID = 5552065
 
-
-    @property
-    def auth_done(self):
-        return self._auth_done
-
-    @auth_done.setter
-    def auth_done(self, value):
-        self._auth_done= value
-
-    @property
-    def user_id(self):
-        return self._user_id
-
-    @user_id.setter
-    def user_id(self, value):
-        self._user_id = value
-
-    @property
-    def vk_token(self):
-        return self._vk_token
-
-    @vk_token.setter
-    def vk_token(self, value):
-        self._vk_token = value
-
-    @property
-    def ui_delegate(self):
-        return self._ui_delegate
-
-    @ui_delegate.setter
-    def ui_delegate(self, value):
-        self._ui_delegate = value
-
-    def __init__(self):
+    def __init__(self, app_id):
+        self.APP_ID = app_id
         self.delegate = Delegate()
         self.ui_delegate = UiDelegate()
 
@@ -98,5 +54,32 @@ class VkApi(vk_api.VkApi):
                 except BaseException as e:
                     print('zapros fail: {}'.format(str(e)))
 
+    @protocol('VKSdkDelegate')
+    def vkSdkAccessTokenUpdated_oldToken_(self, new_token, old_token):
+        vk_api = VkApi.get_instance()
+        old_token = old_token.UTF8String()
 
+        if old_token is not None:
+            new_token = new_token.UTF8String()
 
+            if vk_api.vk_token is None or old_token != new_token:
+                vk_api.vk_token = new_token
+
+                coroutine = vk_api.auth_done
+                coroutine.send(True)
+
+                # print('update token', new_token, old_token)
+
+    @protocol('VKSdkDelegate')
+    def vkSdkAuthorizationStateUpdatedWithResult_(self, token):
+        self.vk_api.vk_token = token.UTF8String()
+        print('update with result')
+
+    @protocol('VKSdkDelegate')
+    def vkSdkAccessAuthorizationFinishedWithResult_(self, token):
+        self.vk_api.vk_token = token.UTF8String()
+        print('finish with result')
+
+    @protocol('VKSdkDelegate')
+    def vkSdkTokenHasExpired_(self, *args):
+        print('expired')
